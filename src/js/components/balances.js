@@ -176,19 +176,13 @@ function CreateNewAddressModalViewModel() {
 
     //save prefs to server
     WALLET.storePreferences(function(data, endpoint) {
-      self.shown(false);
-      
-      if(self.addressType() != 'normal') {
-        //If we created a watch or armory address, refresh the counterparty balances with this new address
-        //btc address balances will refresh on the refresh of the balances page itself
-        setTimeout(function() { WALLET.refreshCounterpartyBalances([newAddress], checkURL)});
-      } else {
-        //Otherwise (a new non-watch address), just refresh the page
-        setTimeout(checkURL, 800); //necessary to use setTimeout so that the modal properly hides before we refresh the page
-      }
+      self.shown(false);      
+      WALLET.refreshCounterpartyBalances([newAddress]);
+      WALLET.refreshBTCBalances();
     });
     trackEvent('Balances', self.addressType() == 'normal' ? 'CreateNewAddress' : (
       self.addressType() == 'watch' ? 'CreateNewWatchAddress' : 'CreateNewArmoryOfflineAddress'));
+
   }
   
   self.show = function(addressType, resetForm) {
@@ -219,6 +213,7 @@ function SendModalViewModel() {
     isValidBitcoinAddress: self,
     isNotSameBitcoinAddress: self
   });
+  
   self.quantity = ko.observable().extend({
     required: true,
     isValidPositiveQuantity: self,
@@ -232,9 +227,9 @@ function SendModalViewModel() {
       },
       message: 'Quantity entered exceeds your current balance.',
       params: self
-    }    
+    }   
   });
-  
+    
   self.normalizedBalance = ko.computed(function() {
     if(self.address() === null || self.rawBalance() === null) return null;
     return normalizeQuantity(self.rawBalance(), self.divisible());
@@ -262,7 +257,7 @@ function SendModalViewModel() {
   
   self.validationModel = ko.validatedObservable({
     destAddress: self.destAddress,
-    quantity: self.quantity
+    quantity: self.quantity()
   });  
   
   self.resetForm = function() {
@@ -690,7 +685,7 @@ function SweepModalViewModel() {
     }
 
     var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {    
-      var signedHex = cwk.checkAndSignRawTransaction(unsignedTxHex, self.addressForPrivateKey());
+      var signedHex = cwk.checkAndSignRawTransaction(unsignedTxHex, [self.addressForPrivateKey()]);
       WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
     }
 
@@ -779,7 +774,7 @@ function SweepModalViewModel() {
       }
 
       var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
-        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, self.addressForPrivateKey());
+        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, [self.addressForPrivateKey()]);
         WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
       }
 
@@ -814,7 +809,7 @@ function SweepModalViewModel() {
     multiAPIConsensus("create_issuance", transferData,
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
         
-        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, self.destAddress());
+        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, [self.destAddress()]);
         WALLET.broadcastSignedTx(signedHex, function(issuanceTxHash, endpoint) { //broadcast was successful
           opsComplete.push({
             'type': 'transferOwnership',
@@ -911,7 +906,7 @@ function SweepModalViewModel() {
     multiAPIConsensus("create_send", sendData, //can send both BTC and counterparty assets
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
         
-        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, self.destAddress());
+        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, [self.destAddress()]);
 
         WALLET.broadcastSignedTx(signedHex, function(sendTxHash, endpoint) { //broadcast was successful
           opsComplete.push({
@@ -1494,7 +1489,7 @@ function ArmoryBroadcastTransactionModalViewModel() {
   self.doAction = function() {
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       self.hide();
-      var message = "Transaction successful broadcast!<br/><br/>Transaction ID: " + txHash;
+      var message = "<b>Transaction broadcast successfully!</b><br/><br/>Transaction ID: " + txHash;
       WALLET.showTransactionCompleteDialog(message, message, armoryUTx);
     }
     

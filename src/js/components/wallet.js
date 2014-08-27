@@ -10,6 +10,7 @@ function WalletViewModel() {
   self.addresses = ko.observableArray(); //AddressViewModel objects -- populated at login
   
   self.isNew = ko.observable(false); //set to true if we can't find the user's prefs when logging on. if set, we'll show some intro text on their login, etc.
+  self.isExplicitlyNew = ko.observable(false); //set to true if the user explicitly clicks on Create New Wallet and makes it (e.g. this may be false and isNew true if the user typed in the wrong passphrase, or manually put the words together)
   self.isSellingBTC = ko.observable(false); //updated by the btcpay feed
   self.isOldWallet = ko.observable(false);
 
@@ -207,12 +208,7 @@ function WalletViewModel() {
     return false
   }
 
-  self.searchDivisibility = function(asset, callback) {
-    if (asset == BTC || asset == XCP) {
-      callback(true);
-      return;
-    }
-    // check if the wallet have the information
+  self.isAssetDivisibilityAvailable = function(asset) {
     var divisible = -1;
     var addressObj = null, assetObj = null, i = null, j = null;
     for(i=0; i < self.addresses().length; i++) {
@@ -220,17 +216,44 @@ function WalletViewModel() {
       for(j=0; j < addressObj.assets().length; j++) {
         assetObj = addressObj.assets()[j]; 
         if (assetObj.ASSET == asset) {
-          callback(assetObj.DIVISIBLE);
-          return;
+          divisible = assetObj.DIVISIBLE ? 1 : 0;
         }
       }
     }
-    // else make a query to counterpartyd
-    if (divisible == -1) {
-      failoverAPI("get_asset_info", {'assets': [asset]}, function(assetsInfo, endpoint) {
-        callback(assetsInfo[0]['divisible']);
-        return;
+    return divisible;
+  }
+
+  self.getAssetsDivisibility = function(assets, callback) {
+    var assetsDivisibility = {};
+    var notAvailable = [];
+
+    // check if the wallet have the information
+    for (var a in assets) {
+      var asset = assets[a];
+      if (asset == 'XCP' || asset == 'BTC') {
+        assetsDivisibility[asset] = true;
+      } else {
+        var divisible = self.isAssetDivisibilityAvailable(asset);
+        if (divisible == -1) {
+          notAvailable.push(asset)
+        } else if (divisible == 1) {
+          assetsDivisibility[asset] = true;
+        } else {
+          assetsDivisibility[asset] = false;
+        }
+      }
+    }
+
+    if (notAvailable.length > 0) {
+      // else make a query to counterpartyd
+      failoverAPI("get_asset_info", {'assets': notAvailable}, function(assetsInfo, endpoint) {
+        for (var a in assetsInfo) {
+          assetsDivisibility[assetsInfo[a]['asset']] = assetsInfo[a]['divisible'];
+        }
+        callback(assetsDivisibility);
       }); 
+    } else {
+      callback(assetsDivisibility)
     }
   }
 
@@ -268,19 +291,34 @@ function WalletViewModel() {
           if(assets.indexOf(balancesData[i]['asset'])==-1)
           assets.push(balancesData[i]['asset']);
         }
+        // TODO: optimize: assets infos already fetched in get_normalized_balances() in counterblockd
         getAssetInfo(assets).then(function (assetsInfo) {
-          for(i=0; i < assetsInfo.length; i++) {
-            for(j=0; j < balancesData.length; j++) {
-              if(balancesData[j]['asset'] != assetsInfo[i]['asset']) continue;
-              WALLET.getAddressObj(balancesData[j]['address']).addOrUpdateAsset(
-                assetsInfo[i]['asset'], assetsInfo[i], balancesData[j]['quantity']);
-              numBalProcessed += 1;
-              if(numBalProcessed == balancesData.length) return onSuccess();
+
+          failoverAPI("get_escrowed_balances", {'addresses': addresses}, function(escrowedBalances) {
+
+            for (i=0; i < assetsInfo.length; i++) {
+              for (j=0; j < balancesData.length; j++) {
+                if (balancesData[j]['asset'] != assetsInfo[i]['asset']) continue;
+                var address = balancesData[j]['address'];
+                var asset = assetsInfo[i]['asset'];
+                var escrowedBalance = 0;
+                if (escrowedBalances[address] && escrowedBalances[address][asset]) {
+                  escrowedBalance = escrowedBalances[address][asset];
+                }
+                WALLET.getAddressObj(address).addOrUpdateAsset(asset, assetsInfo[i], balancesData[j]['quantity'], escrowedBalance);
+                numBalProcessed += 1;
+                if (numBalProcessed == balancesData.length && onSuccess) return onSuccess();
+              }
             }
-          }
+
+          });
+          
         });
+
       }
     );
+
+  
   }
 
   self.refreshBTCBalances = function(isRecurring) {
@@ -529,6 +567,9 @@ function WalletViewModel() {
     } else if (action == "create_dividend" && data['dividend_asset'] == BTC) {
       verifyDestAddr = data['_btc_dividend_dests'];
       delete data['_btc_dividend_dests'];
+    }
+    if (typeof(verifyDestAddr) == 'string') {
+      verifyDestAddr = [verifyDestAddr];
     }
     
     //Do the transaction

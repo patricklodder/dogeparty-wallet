@@ -54,6 +54,11 @@
   margin-bottom: 35px;
 }
 
+p.createWalletHeaderText {
+  /*font-weight:bold;*/
+  font-size:1.1em;
+}
+
 p.logonWarningLine1 {
   font-weight:bold;
   text-align:center;

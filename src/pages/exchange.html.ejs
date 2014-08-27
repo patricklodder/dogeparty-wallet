@@ -238,7 +238,7 @@
                       <thead>
                           <tr class="centerHeader">
                               <th>Type</th>
-                              <th>Price [<span data-bind="text: quoteAsset + '/' + baseAsset"></span>]</th>
+                              <th>Price [<span data-bind="text: baseAsset + '/' + quoteAsset"></span>]</th>
                               <th>Amount [<span data-bind="text: baseAsset"></span>]</th>
                               <th>Total [<span data-bind="text: quoteAsset"></span>]</th>
                               <th>Completion</th>
@@ -253,7 +253,7 @@
                               <td data-bind="text: total"></td>
                               <td data-bind="text: completion"></td>
                               <td>
-                                <a href="#" class="btn btn-default btn-xs" data-bind="click: cancelOrder">Cancel</a>
+                                <a class="btn btn-default btn-xs" data-bind="click: $parent.cancelOrder">Cancel</a>
                               </td>
                           </tr>
                       </tbody>

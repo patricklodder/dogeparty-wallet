@@ -1,10 +1,68 @@
 
+function WalletCreationViewModel() {
+
+  var self = this;
+
+  self.shown = ko.observable(false);
+  self.generatedPassphrase = ko.observable('');
+  self.passphraseSaved = ko.observable(false);
+  self.step = ko.observable(1);
+  
+  self.quickAccessPassword = ko.observable('');
+  self.showQuickAccessFrame = ko.observable(false);
+
+  self.quickAccessUrl = ko.computed(function() {
+    if (self.generatedPassphrase().length > 0 && self.quickAccessPassword().length > 0) {
+      return CWBitcore.getQuickUrl(self.generatedPassphrase(), self.quickAccessPassword());
+    }
+  });
+
+  self.show = function() {
+    self.step(1);
+    self.generatePassphrase();
+    self.passphraseSaved(false);
+    self.quickAccessPassword('');
+    self.showQuickAccessFrame(false);
+    self.shown(true);
+    setTimeout(function() { selectText('generated') }, 200); //necessary due to fade in effect
+  }
+
+  self.hide = function() {
+    self.shown(false);
+  }
+
+  self.generatePassphrase = function() {
+    var m = new Mnemonic(128); //128 bits of entropy (12 word passphrase)
+    
+    var words = m.toWords();
+    self.generatedPassphrase(words.join(' '));
+
+    //select the generated passphrase text
+    selectText('generated');
+  }
+
+  self.goToStep2 = function() {
+    self.step(2);
+  }
+  
+  self.showQuickAccessURLGUI = function() {
+    self.showQuickAccessFrame(true);
+  }
+
+  self.createWallet = function() {
+    self.hide();
+    WALLET.isExplicitlyNew(true);
+    LOGON_VIEW_MODEL.enteredPassphrase(self.generatedPassphrase());
+    LOGON_VIEW_MODEL.openWallet();
+  }
+
+}
+
 function LogonViewModel() {
   //JS used when the user is not yet logged on
   var self = this;
 
   self.enteredPassphrase = ko.observable('');
-  self.generatedPassphrase = ko.observable('');
   self.walletGenProgressVal = ko.observable(0);
   self.passwordDecrypt = ko.observable('');
   self.cryptedPassphraseUsed = ko.observable(CRYPTED_PASSPHRASE ? true : false);
@@ -54,17 +112,19 @@ function LogonViewModel() {
   self.passwordDecrypt.subscribe(self.decryptEnteredPassphrase);
   
   self.generatePassphrase = function() {
-    var m = new Mnemonic(128); //128 bits of entropy (12 word passphrase)
     
-    var words = m.toWords();
-    self.generatedPassphrase(words.join(' '));
-
-    //select the generated passphrase text
-    selectText('generated');
+    WALLET_CREATION_MODAL.show();
   }
   
   self.showSecureKeyboard = function() {
     LOGON_PASSWORD_MODAL.show(); 
+  }
+
+  self.setExtraInfoOpacity = function(opacity) {
+    $('#newAccountInfoPane').animate({opacity:opacity}); //fade out the new account pane if visible
+    $('#createNewAcctBtnPane').animate({opacity:opacity}); //fade out the new account button pane if visible
+    $('#extra-info').animate({opacity:opacity});
+    $('#disclaimer').animate({opacity:opacity});
   }
 
   self.openWallet = function() {
@@ -78,10 +138,7 @@ function LogonViewModel() {
 
       //User is logging in...
       self.walletGenProgressVal(0); //reset so the progress bar hides again...
-      $('#newAccountInfoPane').animate({opacity:0}); //fade out the new account pane if visible
-      $('#createNewAcctBtnPane').animate({opacity:0}); //fade out the new account button pane if visible
-      $('#extra-info').animate({opacity:0});
-      $('#disclaimer').animate({opacity:0});
+      self.setExtraInfoOpacity(0);
       
       //generate the wallet ID from a double SHA256 hash of the passphrase and the network (if testnet)
       var hashBase = CryptoJS.SHA256(self.sanitizedEnteredPassphrase() + (USE_TESTNET ? '_testnet' : ''));
@@ -100,7 +157,9 @@ function LogonViewModel() {
 
       // set user country
       USER_COUNTRY = data['country'];
-      $.jqlog.debug('USER_COUNTRY: ' + USER_COUNTRY);
+      
+      // set quote assets
+      QUOTE_ASSETS = data['quote_assets']
       
       //See if any servers show the wallet as online (this will return the a true result, if any server shows the wallet as online)
       multiAPI("is_wallet_online", {'wallet_id': WALLET.identifier()}, self.onIsWalletOnline);
@@ -126,6 +185,7 @@ function LogonViewModel() {
             className: "btn-danger",
             callback: function() {
               bootbox.hideAll();
+              self.setExtraInfoOpacity(100);
               return false;
             }
           },
@@ -317,6 +377,11 @@ function LicenseModalViewModel() {
 
   self.hide = function() {
     self.shown(false);
+  }
+
+  self.rejectTerms = function() {
+    self.hide();
+    LOGON_VIEW_MODEL.setExtraInfoOpacity(100);
   }
   
   self.acceptTerms = function() {

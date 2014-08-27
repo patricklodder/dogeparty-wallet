@@ -9,6 +9,7 @@
   "xcp_store_url": "",
   "max_burn_per_address": 5000000,
   "homepage": "http://dogeparty.io",
+  "testnet_url": "https://testnet.wallet.dogeparty.io",
   "livenet": {
     "burning": {
       "start": 335642,
