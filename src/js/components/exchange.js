@@ -897,7 +897,7 @@ function ExchangeViewModel() {
     $.jqlog.debug(order);
 
     var message = 'Requests to cancel an order will still consume BTC (necessary to pay the Bitcoin miner fee). To avoid this, let your order expire naturally.';
-    if (self.quoteAsset() == 'BTC' && order.type == 'BUY') {
+    if (self.quoteAsset() == BTC && order.type == 'BUY') {
       message += '<br />We recommend to use XCP for your next trades! It\'s faster, cheaper, and you don\'t have to stay logged in.';
     }
 

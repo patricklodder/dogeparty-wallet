@@ -230,7 +230,7 @@ function WalletViewModel() {
     // check if the wallet have the information
     for (var a in assets) {
       var asset = assets[a];
-      if (asset == 'XCP' || asset == 'BTC') {
+      if (asset == XCP || asset == BTC) {
         assetsDivisibility[asset] = true;
       } else {
         var divisible = self.isAssetDivisibilityAvailable(asset);
