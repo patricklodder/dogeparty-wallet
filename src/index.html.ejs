@@ -59,7 +59,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
   </head>
-  <body class="fixed-header fixed-ribbon fixed-navigation smart-style-2" data-bind="css: {minified: IS_MOBILE_OR_TABLET }">
+  <body class="fixed-header fixed-ribbon fixed-navigation smart-style-2 show-logon" data-bind="css: {minified: IS_MOBILE_OR_TABLET }">
     <!-- default to ultra light theme (smart-style-2) -->
     <!-- also default to minfied view on mobile/tablet devices -->
     <div id="allContentLoading">Loading...</div>
@@ -274,7 +274,7 @@
       <div id="form-well" class="form-well">
 
         <div id="createNewAcctBtnPane">
-          <button id="newWalletButton" data-bind="click: generatePassphrase" type="button" class="btn btn-success btn-lg">Create New Wallet</button>
+          <button id="newWalletButton" data-bind="click: generatePassphrase" type="button" class="btn btn-lg">Create New Wallet</button>
         </div>
 
         <div data-bind="visible: !USE_TESTNET" class="testnet-note">

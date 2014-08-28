@@ -325,6 +325,7 @@ function LogonViewModel() {
     }
     /* hide the login div and show the other divs */
     $('#logon').hide();
+    $(document.body).removeClass('show-logon');
     $('#header').show();
     $('#left-panel').show();
     $('#main').show();

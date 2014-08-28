@@ -1,6 +1,11 @@
 /* 
  * Logon page specific
  */
+
+.show-logon {
+  height: auto;
+}
+
 #logon {
   padding-top: 120px;
   background: white; 
@@ -18,6 +23,17 @@
     max-width: 610px;
     margin: 0 auto;
     padding-bottom: 0px;
+}
+
+#generated {
+  width: 85%;
+  display: inline-block;
+  padding: 6px 5px;
+  border: 1px solid #AAA;
+}
+
+#generated-regenerate {
+  width: 13%;
 }
 
 #password, #passwordDecrypt, #cryptedPassphrase {
@@ -202,8 +218,7 @@ p.logonWarningOtherLines {
   height: auto;
 }
 
-.dogeparty input[type="password"],
-#generated {
+.dogeparty input[type="password"] {
   background: #f6f6f6;
   border: 0;
   border-radius: 4px !important;
@@ -212,22 +227,13 @@ p.logonWarningOtherLines {
   text-align: center;
 }
 
-#generated {
-  color: black;
-}
-
-.dogeparty .btn-open,
-.dogeparty .btn-regenerate {
+.dogeparty .btn-open {
   background: #2f99b6 !important;
   border: 0;
   box-shadow: none !important;
   color: white;
   margin-top: 10px;
   padding: 15px;
-}
-
-.dogeparty .btn-regenerate {
-  width: 100%;
 }
 
 .dogeparty .btn-primary-2 {
