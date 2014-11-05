@@ -7,7 +7,7 @@ function normalizeQuantity(quantity, divisible) {
 }
 
 function denormalizeQuantity(quantity, divisible) {
-  //Converts from float (decimal form) to satoshi (int) 
+  //Converts from float (decimal form) to satoshi (int)
   if(typeof(divisible)==='undefined') divisible = true;
   return divisible && quantity !== 0 ? Decimal.round(new Decimal(quantity).mul(UNIT), 8, Decimal.MidpointRounding.ToEven).toFloat() : parseInt(quantity);
   //^ we have the quantity !== 0 check due to a bug in Decimal (https://github.com/hiroshi-manabe/JSDecimal/issues/2)
@@ -37,7 +37,7 @@ function divFloat(floatA, floatB) {
 
 function hashToB64(content) {
   //used for storing address alias data, for instance
-  return CryptoJS.SHA256(content).toString(CryptoJS.enc.Base64); 
+  return CryptoJS.SHA256(content).toString(CryptoJS.enc.Base64);
 }
 
 function smartFormat(num, truncateDecimalPlacesAtMin, truncateDecimalPlacesTo) { //arbitrary rules to make quantities formatted a bit more friendly
@@ -56,16 +56,16 @@ function assetsToAssetPair(asset1, asset2) {
   //NOTE: This MUST use the same logic/rules as counterblockd's assets_to_asset_pair() function in lib/util.py
   var base = null;
   var quote = null;
-  
-  if(asset1 == 'BTC' || asset2 == 'BTC') {
-      base = asset1 == 'BTC' ? asset2 : asset1;
-      quote = asset1 == 'BTC' ? asset1 : asset2;
+
+  if(asset1 == BTC || asset2 == BTC) {
+      base = asset1 == BTC ? asset2 : asset1;
+      quote = asset1 == BTC ? asset1 : asset2;
+  } else if(asset1 == XCP || asset2 == XCP) {
+      base = asset1 == XCP ? asset2 : asset1;
+      quote = asset1 == XCP ? asset1 : asset2;
   } else if(asset1 == 'XBTC' || asset2 == 'XBTC') {
       base = asset1 == 'XBTC' ? asset2 : asset1;
       quote = asset1 == 'XBTC' ? asset1 : asset2;
-  } else if(asset1 == 'XCP' || asset2 == 'XCP') {
-      base = asset1 == 'XCP' ? asset2 : asset1;
-      quote = asset1 == 'XCP' ? asset1 : asset2;
   } else  {
       base = asset1 < asset2 ? asset1 : asset2;
       quote = asset1 < asset2 ? asset2 : asset1;
@@ -82,7 +82,7 @@ function makeQRCode(addr) {
   qr.addData(addr);
   qr.make();
 
-  return qr.createImgTag(4);  
+  return qr.createImgTag(4);
 }
 
 function getLinkForCPData(type, dataID, dataTitle, htmlize) {
@@ -91,7 +91,7 @@ function getLinkForCPData(type, dataID, dataTitle, htmlize) {
   if(typeof(type)==='undefined') type = 'tx';
   var url = null;
   if(type == 'address') { //dataID is an address
-    url = "http://blockscan.com/address.aspx?q=" + dataID;
+    url = "http://dogepartychain.info/address/" + dataID;
   } else if(type == 'order') { //txID is an order ID
     url = "http://blockscan.com/order.aspx?q=" + dataID;
   } else if(type == 'tx') { //generic TX
@@ -102,7 +102,7 @@ function getLinkForCPData(type, dataID, dataTitle, htmlize) {
   if(USE_TESTNET) {
     return dataTitle ? dataTitle : dataID; //blockscan not for testnet currently
   } else {
-    return htmlize ? ('<a href="' + url + '" target="_blank">' + dataTitle + '</a>') : url;  
+    return htmlize ? ('<a href="' + url + '" target="_blank">' + dataTitle + '</a>') : url;
   }
 }
 
@@ -120,7 +120,7 @@ function getTxHashLink(hash) {
 function getLinkForBlock(blockIndex, dataTitle, htmlize) {
   if(typeof(dataTitle)==='undefined' || dataTitle === null) dataTitle = blockIndex;
   if(typeof(htmlize)==='undefined' || htmlize === null) htmlize = true;
-  var url = BLOCKEXPLORER_URL + '/block-index/' + blockIndex;
+  var url = BLOCKEXPLORER_URL + '/block/' + blockIndex;
   return htmlize ? '<a href="' + url + '" target="_blank">' + dataTitle + '</a>' : url;
 }
 
@@ -129,13 +129,13 @@ function getAddressLabel(address) {
   return PREFERENCES['address_aliases'][hashToB64(address)] || address;
 }
 
-function testnetBurnDetermineEarned(blockHeight, burned) {
+function burnDetermineEarned(blockHeight, burned) {
   //burned is the quantity of BTC to burn (as a float -- normalized value)
   //XCP quantity returned is as a float -- normalized value
   burned = denormalizeQuantity(burned);
-  var total_time = TESTNET_BURN_END - TESTNET_BURN_START;
-  var partial_time = TESTNET_BURN_END - blockHeight;
-  var multiplier = 1000 * (1 + .5 * (partial_time / total_time)); //will be approximate
+  var total_time = BURN_END - BURN_START;
+  var partial_time = BURN_END - blockHeight;
+  var multiplier = BURN_MULTIPLIER * (1 + .5 * (partial_time / total_time)); //will be approximate
   var earned = Decimal.round(new Decimal(burned).mul(multiplier), 8, Decimal.MidpointRounding.ToEven).toFloat();
   return normalizeQuantity(earned);
 }

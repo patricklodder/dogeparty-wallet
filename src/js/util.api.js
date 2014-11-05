@@ -1,5 +1,5 @@
 
-var TIMEOUT_FAILOVER_API = 4000; // 4 seconds (in ms)
+var TIMEOUT_FAILOVER_API = 16000; // 16 seconds (in ms)
 var TIMEOUT_MULTI_API = 8000; // 8 seconds (in ms)
 
 //Inlude a .url param in every jqXHR object -- http://stackoverflow.com/a/11980396
@@ -363,6 +363,19 @@ function multiAPI(method, params, onSuccess, onError) {
   });
 }
 
+function getAssetInfo (assets) {
+  var slices = [], assets = [].concat(assets);
+  while (assets.length) slices.push(assets.splice(0, 100)); // 100 at once
+  var promises = slices.map(function (assets) {
+      return new Promise(function (resolve) {
+        failoverAPI("get_asset_info", { "assets": assets }, function(assetsInfo) {
+          return resolve(assetsInfo);
+        });
+      });
+    });
+  return Promise.all(promises).then(_.flatten);
+}
+
 function multiAPIConsensus(method, params, onSuccess, onConsensusError, onSysError) {
   /*Make an API call and require all servers not returning an error to give back the same result, which is
     passed to the onSuccess callback.
@@ -384,12 +397,12 @@ function multiAPIConsensus(method, params, onSuccess, onConsensusError, onSysErr
     onSysError = function(jqXHR, textStatus, errorThrown, endpoint) {
       $.jqlog.debug(textStatus);
       var message = textStatus;
-      var noBtcPos = textStatus.indexOf("Insufficient bitcoins");
+      var noBtcPos = textStatus.indexOf("Insufficient " + BTC_NAME + "s");
       if (noBtcPos != -1) {
         var endMessage = textStatus.indexOf(")", noBtcPos) + 1;
 
         message = '<b class="errorColor">' + textStatus.substr(noBtcPos, endMessage-noBtcPos)
-          + '</b>. You must have a small amount of BTC in this address to pay the Bitcoin miner fees. Please fund this address and try again.<br/><br/>'
+          + '</b>. You must have a small amount of ' + BTC + ' in this address to pay the ' + BTC_NAME + ' miner fees. Please fund this address and try again.<br/><br/>'
           + '<a href="https://www.counterparty.co/resources/faqs/why-do-i-need-small-amounts-of-bitcoin-to-do-things-in-counterwallet/" target="_blank">More information on why this is necessary.</a>';
       
       } else {
