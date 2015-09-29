@@ -129,7 +129,7 @@
         <span id="noticeDevMode" data-bind="visible: IS_DEV" class="label label-warning pull-right modeIndicator"><i class="fa-fw fa fa-warning"></i>&nbsp;Dev Mode Enabled</span>
        
         <span id="donate" class="pull-right">
-          <a href="#" class="btn btn-primary">DONATE</a>
+          <!--<a href="#" class="btn btn-primary">DONATE</a>-->
         </span>
 
       </div> <!-- end pulled right: nav area -->
@@ -150,7 +150,7 @@
           <li class="" data-bind="visible: FEATURE_HISTORY">
             <a href="pages/history.html"><i class="fa fa-lg fa-fw fa-book"></i> <span class="menu-item-parent">History</span></a>
           </li>
-          <li class="">
+          <!--<li class="">
             <a href="#"><i class="fa fa-lg fa-fw fa-plus"></i> <span class="menu-item-parent">More</span></a>
             <ul>
                 <li data-bind="visible: FEATURE_PORTFOLIO">
@@ -158,11 +158,11 @@
                 </li>
                 <li data-bind="visible: FEATURE_LEADERBOARD">
                     <a href="pages/leaderboard.html"><i class="fa fa-lg fa-fw fa-trophy"></i> Top Assets</a>
-                </li>
+                </li>-->
                 <li data-bind="visible: FEATURE_STATS">
                     <a href="pages/stats.html"><i class="fa fa-lg fa-fw fa-crosshairs"></i> Network Stats</a>
-                </li>
-            </ul>
+                <!--</li>
+            </ul>-->
           </li>
         </ul>
       </nav>
@@ -182,7 +182,7 @@
       <!-- END MAIN CONTENT -->
     </div>
     <!-- END MAIN PANEL -->
-    <div class="openChatPane">CHAT</div>
+    <!--<div class="openChatPane">CHAT</div>-->
     <div id="chatPane" style="display: none">
       <h2 data-bind="html: headerText"></h2>
       <div class="chatOnlineCount"><span data-bind="text: numUsersOnline"></span> Users Online</div>
@@ -206,6 +206,7 @@
       <img src="images/dogeparty@2x.png" alt="Dogeparty" class="dp-logo" />
       <h1>Welcome to {{= name}}<span data-bind="visible: USE_TESTNET">&nbsp;Testnet</span></h1>
       <h2>Powered by Counterparty</h2>
+      <h2>Sponsor(s) of the month: <a href="https://www.reddit.com/user/sporklin" target="_blank">/u/Sporklin</a></h2>
       <div id="form-well" class="form-well">
         <div id="createNewAcctBtnPane" data-bind="visible: generatedPassphrase().length == 0">
           <button id="newWalletButton" data-bind="click: generatePassphrase" type="button" class="btn btn-lg">Create New Wallet</button>
@@ -286,7 +287,7 @@
              <div class="col-sm-8 col-sm-offset-2">
                <img src="images/rocket@2x.png" alt="To the moon" class="img-rocket" />
                <h3 class="sales-title margin-bottom-10">
-                 {{= name}} is a web-wallet for <a href="{{= homepage}}" target="_blank">{{= xcp_name}}</a>,
+                 {{= name}} is a web-wallet for {{= xcp_name}},
                  the world’s first protocol for decentralized financial tools.
                  All transactions made with {{= name}} use an automatic escrow system to keep them secure, with no middleman required.
                </h3>
