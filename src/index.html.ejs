@@ -203,7 +203,7 @@
 
     <!-- Logged out cover div -->
     <div id="logon" class="dogeparty">
-      <img src="images/dogeparty@2x.png" alt="Dogeparty" class="dp-logo" />
+      <!--<img src="images/dogeparty@2x.png" alt="Dogeparty" class="dp-logo" />-->
       <h1>Welcome to {{= name}}<span data-bind="visible: USE_TESTNET">&nbsp;Testnet</span></h1>
       <h2>Powered by Counterparty</h2>
       <h2>Sponsor(s) of the month: <a href="https://www.reddit.com/user/sporklin" target="_blank">/u/Sporklin</a></h2>
@@ -237,7 +237,7 @@
           </div>
         </div>
 
-        <div data-bind="visible: !USE_TESTNET" class="testnet-note">
+        <div style="display: none;" class="testnet-note">
           <p>
             <span>New to {{= name}}, <span class="nowrap">and want to just play around?</span></span>
             <br />
